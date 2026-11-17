@@ -1,0 +1,16 @@
+{
+  "id": "./",
+  "name": "Mandarin Lab",
+  "short_name": "Mandarin Lab",
+  "description": "Tu laboratorio personal para aprender chino mandarín.",
+  "lang": "es",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7f4ef",
+  "theme_color": "#29231f",
+  "orientation": "any",
+  "icons": [
+    {"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
+}
