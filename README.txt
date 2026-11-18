@@ -1,4 +1,6 @@
-# Mandarin Lab 2.0
+# Mandarin Lab 2.1
+
+Actualización: filtros persistentes de Flashcards, selección coherente entre fuente y lección, contador de palabras filtradas y navegación circular dentro del conjunto activo.
 
 ## Incluye
 - Aplicación web responsive (escritorio y móvil).
