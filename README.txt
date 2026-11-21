@@ -1,15 +1,21 @@
-# Mandarin Lab 2.2
+# Mandarin Lab 2.3
 
-Actualización de Mandarin Lab 2.1. Conserva las mejoras de filtros de Flashcards y añade identificación de versión, historial de cambios, respaldo JSON con metadatos y validación, y ayuda contextual para incidencias de audio en iPhone.
+Actualización de Mandarin Lab 2.2. Conserva los filtros de Flashcards, el almacenamiento local, la importación/exportación de respaldos y el motor de síntesis de voz.
+
+## Novedades de 2.3
+- Diagnóstico detallado de SpeechRecognition en Safari.
+- Captura de códigos de error reales (`not-allowed`, `audio-capture`, `network`, `no-speech`, `service-not-allowed`, entre otros).
+- Gestión de eventos de inicio, captura de audio, voz, resultados, errores y finalización.
+- Captura de excepciones al iniciar el reconocimiento.
+- Prevención de sesiones simultáneas.
+- Panel para copiar el diagnóstico técnico y compartirlo.
+- Alternativa de autoevaluación si el navegador no ofrece reconocimiento.
 
 ## Publicación en GitHub Pages
-Sube `index.html`, `sw.js`, `manifest.webmanifest` e `icon.svg` directamente a la raíz del repositorio existente y confirma los cambios. No subas la carpeta contenedora. El nombre de caché del service worker cambió a `mandarin-lab-v2.2.0` para renovar los recursos de la PWA.
+Sube `index.html`, `sw.js`, `manifest.webmanifest` e `icon.svg` directamente a la raíz del repositorio existente y confirma los cambios. No subas la carpeta contenedora. El nombre de caché del Service Worker cambió a `mandarin-lab-v2.3.0`.
 
-## Respaldo
-En Ajustes y datos, usa Exportar respaldo JSON antes de actualizar o trasladar tus datos. La importación valida la estructura y solicita confirmación antes de reemplazar los datos locales. El respaldo no incluye el código ni el vocabulario base integrado, que ya forma parte de la aplicación.
+## Respaldo y datos
+Antes de actualizar, exporta un respaldo JSON desde Ajustes y datos. La versión 2.3 conserva el mismo esquema de respaldo de 2.2 y mantiene el progreso en el almacenamiento local del navegador. No hay sincronización automática entre dispositivos.
 
-## Audio en iPhone
-La aplicación usa SpeechSynthesis del navegador. Safari para iPhone puede silenciar la síntesis de voz por el altavoz cuando el interruptor físico está en modo silencio. La web no puede detectar directamente ese interruptor; si no se escucha, comprueba el modo silencio, el volumen y la salida de audio. No se solicita permiso de micrófono para reproducir voz.
-
-## Datos y privacidad
-El progreso se almacena localmente en cada navegador y no se sincroniza automáticamente entre dispositivos. Exporta respaldos periódicamente y conserva el archivo en un lugar seguro.
+## Limitación importante
+La versión 2.3 mejora el diagnóstico y el manejo de errores, pero no puede corregir por sí sola un fallo del servicio de reconocimiento de voz de Safari/WebKit. Si el servicio del sistema falla, la aplicación mostrará el código de error real para orientar el siguiente paso. El reconocimiento de voz puede requerir conexión a internet según la implementación de Safari.
