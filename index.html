@@ -4,9 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#29231f">
+<meta name="application-version" content="2.2">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<title>Mandarin Lab 2.0</title>
+<title>Mandarin Lab 2.2</title>
 <style>
 :root{--ink:#29231f;--muted:#81766e;--paper:#f7f4ef;--card:#fff;--line:#e8e0d7;--red:#a94438;--red2:#c45b4c;--green:#25845b;--gold:#d6a64d;--soft:#f0e9e1;--shadow:0 8px 28px #32251a0b}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
@@ -30,7 +31,7 @@ button,input,select{font:inherit}button{cursor:pointer;border:0;border-radius:12
   <button data-page="stats"><span class="ico">▥</span> Estadísticas</button>
   <button data-page="settings"><span class="ico">⚙</span> Ajustes y datos</button>
  </nav>
- <div class="sidefoot">Mandarin Lab 2.0 · HSK 3.0<br>Aprendizaje personal, a tu ritmo.</div>
+ <div class="sidefoot">Mandarin Lab 2.2 · HSK 3.0<br>Aprendizaje personal, a tu ritmo.</div>
 </aside>
 <div class="main">
  <header class="top"><div class="row"><b id="toplabel">Inicio</b><span class="tag red">HSK 3.0</span></div><div class="topright"><span class="streak" id="streak">🔥 0 días</span><div class="avatar">文</div></div></header>
@@ -103,7 +104,24 @@ function mastered(){return words.filter(w=>p(w).reps>=3&&p(w).ease>=2.2).length}
 function dayStreak(){let days=[...new Set(sessions.map(x=>new Date(x.date).toDateString()))];let n=0,d=new Date();while(days.includes(d.toDateString())){n++;d.setDate(d.getDate()-1)}return n}
 function record(w,ok){let x=p(w);x.reps++;x[ok?"correct":"wrong"]++;if(ok){x.ease=Math.max(1.3,x.ease+0.1);x.interval=x.interval===0?1:x.interval===1?3:Math.round(x.interval*x.ease);x.due=Date.now()+x.interval*86400000}else{x.lapses++;x.ease=Math.max(1.3,x.ease-0.2);x.interval=0;x.due=Date.now()+10*60000}sessions.push({date:Date.now(),id:w.id,ok});save();updateTop()}
 function updateTop(){$("streak").textContent="🔥 "+dayStreak()+" días"}
-function speak(t){if(!("speechSynthesis"in window)){toast("La síntesis de voz no está disponible en este navegador.");return}speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(t);u.lang="zh-CN";u.rate=Number(prefs.voiceRate)||.82;speechSynthesis.speak(u)}
+function speak(t){
+  if(!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)){
+    toast("Este navegador no ofrece síntesis de voz. Prueba con Safari actualizado."); return;
+  }
+  try {
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(t);
+    u.lang="zh-CN"; u.rate=Number(prefs.voiceRate)||.82; u.volume=1;
+    u.onerror=e=>{
+      console.warn("Mandarin Lab TTS:",e.error||e);
+      toast("No se pudo reproducir el audio. Comprueba el modo silencio, el volumen y la salida de sonido del iPhone.");
+    };
+    speechSynthesis.speak(u);
+  } catch(err) {
+    console.error("Mandarin Lab TTS:",err);
+    toast("No se pudo iniciar el audio. Comprueba el modo silencio y el volumen del dispositivo.");
+  }
+}
 function listen(onText,onError){let SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){onError("El reconocimiento de voz no está disponible en este navegador. Puedes repetir en voz alta y autoevaluarte.");return}let r=new SR();r.lang="zh-CN";r.interimResults=false;r.maxAlternatives=3;r.onresult=e=>onText([...e.results[0]].map(x=>x.transcript).join(" / "));r.onerror=()=>onError("No se pudo reconocer el audio. Comprueba los permisos del micrófono.");r.start()}
 function go(pg){page=pg;idx=0;revealed=false;document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===pg));$("toplabel").textContent=({home:"Inicio",study:"Flashcards",dictation:"Dictado",oral:"Pronunciación",writing:"Escritura",exam:"Exámenes",library:"Biblioteca",stats:"Estadísticas",settings:"Ajustes y datos"})[pg];render()}
 document.querySelectorAll("[data-page]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.page)));
@@ -188,7 +206,48 @@ function library(){let book=words.filter(w=>w.source==="book"),hsk=words.filter(
 function rows(list){return list.map(w=>`<tr><td class="hz">${esc(w.hanzi)}</td><td>${esc(w.pinyin)}</td><td>${esc(w.meaning)}</td><td><span class="tag">${w.source==="book"?"Libro":w.source==="hsk"?"HSK 3.0":"Personal"}</span></td><td>${esc(w.lesson||("Nivel "+(w.level||"—")))}</td></tr>`).join("")}
 function importCSV(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{let lines=String(r.result).split(/\r?\n/).filter(Boolean),head=lines.shift().split(",").map(x=>x.trim().toLowerCase()),get=(a,k)=>a[head.indexOf(k)]||"";let added=0;lines.forEach((line,i)=>{let a=line.split(",").map(x=>x.trim());let hanzi=get(a,"hanzi")||get(a,"chinese");if(!hanzi)return;let item={id:"custom-"+Date.now()+"-"+i,hanzi,pinyin:get(a,"pinyin"),meaning:get(a,"meaning")||get(a,"translation"),pos:get(a,"pos"),source:"custom",lesson:get(a,"lesson"),level:get(a,"level"),notes:"Importado por el usuario"};if(!words.some(w=>w.hanzi===item.hanzi&&w.source==="custom")){custom.push(item);words.push(item);added++}});localStorage.setItem("ml2_custom",JSON.stringify(custom));toast(added+" palabras importadas");library()};r.readAsText(f,"UTF-8")}
 function stats(){let total=reviewed(),c=Object.values(progress).reduce((s,x)=>s+x.correct,0),wrong=Object.values(progress).reduce((s,x)=>s+x.wrong,0);let difficult=words.filter(w=>p(w).wrong>p(w).correct).sort((a,b)=>p(b).wrong-p(b).wrong).slice(0,12);$("app").innerHTML=`<div class="sectionhead"><div><h2>Estadísticas 学习进度</h2><p>Seguimiento de tu aprendizaje en este dispositivo.</p></div><span class="tag green">${accuracy()}% precisión</span></div><div class="stats"><div class="stat"><b>${total}</b><span>Respuestas registradas</span></div><div class="stat"><b>${c}</b><span>Correctas</span></div><div class="stat"><b>${wrong}</b><span>Incorrectas</span></div><div class="stat"><b>${mastered()}</b><span>Consolidadas</span></div></div><div class="sectionhead"><div><h2>Retención por fuente</h2><p>Basada en respuestas registradas.</p></div></div><div class="panel">${["book","hsk","custom"].map(s=>{let a=words.filter(w=>w.source===s),n=a.reduce((z,w)=>z+p(w).correct+p(w).wrong,0),ok=a.reduce((z,w)=>z+p(w).correct,0);return `<div style="margin:14px 0"><div class="row between"><b>${s==="book"?"Libro":s==="hsk"?"HSK 3.0":"Personal"}</b><span class="muted">${n?Math.round(ok/n*100):0}% · ${n} respuestas</span></div><div class="bar"><i style="width:${n?ok/n*100:0}%"></i></div></div>`}).join("")}</div><div class="sectionhead"><div><h2>Palabras para reforzar</h2><p>Las que acumulan más errores que aciertos.</p></div></div><div class="panel tablewrap"><table><thead><tr><th>汉字</th><th>Pinyin</th><th>Significado</th><th>Errores</th></tr></thead><tbody>${difficult.map(w=>`<tr><td class="hz">${w.hanzi}</td><td>${w.pinyin}</td><td>${w.meaning}</td><td>${p(w).wrong}</td></tr>`).join("")||'<tr><td colspan="4">Todavía no hay suficientes datos.</td></tr>'}</tbody></table></div>`}
-function settings(){$("app").innerHTML=`<div class="sectionhead"><div><h2>Ajustes y datos</h2><p>Controla tu sesión y conserva tu progreso.</p></div></div><div class="panel"><h3>Objetivo diario</h3><div class="row"><input id="goal" type="number" min="5" max="120" value="${prefs.dailyGoal}"><span class="muted">minutos al día</span><button class="primary" id="saveGoal">Guardar</button></div><h3 style="margin-top:24px">Velocidad del audio</h3><div class="row"><input id="rate" type="range" min=".55" max="1.1" step=".05" value="${prefs.voiceRate}"><span id="rateValue">${prefs.voiceRate}×</span></div><button class="quiet" id="testAudio">Probar audio 中文</button></div><div class="panel"><h3>Respaldo de progreso</h3><p class="muted">Exporta tus datos para trasladarlos a otro dispositivo. El progreso se guarda localmente y no se sincroniza automáticamente.</p><div class="row"><button class="primary" id="export">Exportar respaldo JSON</button><label class="quiet" style="padding:11px 15px;border-radius:12px;cursor:pointer">Importar respaldo<input id="restore" type="file" accept=".json,application/json" class="hidden"></label></div></div><div class="panel"><h3>Instalación como PWA</h3><p class="muted">Esta copia local funciona como web app, pero Safari no permite instalarla como PWA desde file://. Para instalarla en iPhone y habilitar caché offline necesitamos publicarla en una dirección HTTPS y añadir manifiesto y service worker.</p><span class="tag">Preparada para la siguiente fase de despliegue</span></div><p class="footnote">Los datos se almacenan en este navegador. Limpieza de datos del navegador puede eliminarlos; exporta respaldos periódicamente.</p>`;$("saveGoal").onclick=()=>{prefs.dailyGoal=Math.max(5,Math.min(120,Number($("goal").value)||20));save();toast("Objetivo guardado");home()};$("rate").oninput=()=>$("rateValue").textContent=$("rate").value+"×";$("rate").onchange=()=>{prefs.voiceRate=Number($("rate").value);save()};$("testAudio").onclick=()=>speak("你好！我们一起学习中文。");$("export").onclick=()=>{let blob=new Blob([JSON.stringify({version:2,progress,sessions,prefs,custom},null,2)],{type:"application/json"});download(blob,"mandarin-lab-backup.json")};$("restore").onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let d=JSON.parse(r.result);progress=d.progress||{};sessions=d.sessions||[];prefs=d.prefs||prefs;custom=d.custom||[];localStorage.setItem("ml2_custom",JSON.stringify(custom));save();words=[...bookWords,...hskWords,...custom];toast("Respaldo importado");settings()}catch{toast("El archivo no parece un respaldo válido")}};r.readAsText(f)}}
+function settings(){
+  $("app").innerHTML=`<div class="sectionhead"><div><h2>Ajustes y datos</h2><p>Controla tu sesión y conserva tu progreso.</p></div><span class="tag green">Versión 2.2</span></div>
+  <div class="panel"><h3>Objetivo diario</h3><div class="row"><input id="goal" type="number" min="5" max="120" value="${prefs.dailyGoal}"><span class="muted">minutos al día</span><button class="primary" id="saveGoal">Guardar</button></div><h3 style="margin-top:24px">Velocidad del audio</h3><div class="row"><input id="rate" type="range" min=".55" max="1.1" step=".05" value="${prefs.voiceRate}"><span id="rateValue">${prefs.voiceRate}×</span></div><button class="quiet" id="testAudio">Probar audio 中文</button>
+  <p class="footnote">Si no escuchas el audio en iPhone, comprueba que el interruptor lateral no esté en silencio, sube el volumen y revisa la salida de sonido. Safari no permite que esta web detecte directamente el estado del interruptor de silencio.</p></div>
+  <div class="panel"><h3>Respaldo de progreso</h3><p class="muted">Exporta tus repasos, estadísticas, preferencias, sesiones y vocabulario personal. El respaldo incluye la fecha y versión de exportación. Los datos se guardan localmente y no se sincronizan automáticamente entre dispositivos.</p><div class="row"><button class="primary" id="export">Exportar respaldo JSON</button><label class="quiet" style="padding:11px 15px;border-radius:12px;cursor:pointer">Importar respaldo<input id="restore" type="file" accept=".json,application/json" class="hidden"></label></div><p class="footnote">Al importar, se reemplazarán los datos locales actuales. Exporta primero una copia si quieres conservarlos.</p></div>
+  <div class="panel"><h3>Historial de cambios</h3><div class="lessonlist">
+    <div class="lesson"><div><strong>v2.2 · Actual</strong><small>Versión visible, respaldo con metadatos y validación, ayuda contextual de audio para iPhone.</small></div><span class="tag green">Actual</span></div>
+    <div class="lesson"><div><strong>v2.1</strong><small>Filtros persistentes en Flashcards, relación coherente entre fuente y lección, contador filtrado y navegación dentro del conjunto seleccionado.</small></div></div>
+    <div class="lesson"><div><strong>v2.0</strong><small>Primera versión de Mandarin Lab 2.0: flashcards, dictado, pronunciación, escritura, exámenes, biblioteca y estadísticas.</small></div></div>
+  </div></div>
+  <div class="panel"><h3>Audio en iPhone</h3><p class="muted">La pronunciación utiliza la síntesis de voz integrada en el navegador. En Safari para iPhone, el modo silencio puede impedir que se escuche por el altavoz aunque el audio funcione con audífonos. La aplicación no puede leer el estado del interruptor físico; si falla la reproducción, comprueba el modo silencio, el volumen y la salida de audio.</p></div>
+  <p class="footnote">Los datos se almacenan en este navegador. Borrar los datos del sitio puede eliminarlos; exporta respaldos periódicamente.</p>`;
+  $("saveGoal").onclick=()=>{prefs.dailyGoal=Math.max(5,Math.min(120,Number($("goal").value)||20));save();toast("Objetivo guardado");settings()};
+  $("rate").oninput=()=>$("rateValue").textContent=$("rate").value+"×";
+  $("rate").onchange=()=>{prefs.voiceRate=Number($("rate").value);save()};
+  $("testAudio").onclick=()=>speak("你好！我们一起学习中文。");
+  $("export").onclick=()=>{
+    const backup={app:"Mandarin Lab",appVersion:"2.2",backupSchema:1,exportedAt:new Date().toISOString(),progress,sessions,prefs,custom};
+    const blob=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
+    download(blob,"mandarin-lab-backup-"+new Date().toISOString().slice(0,10)+".json");
+    toast("Respaldo exportado");
+  };
+  $("restore").onchange=e=>{
+    const f=e.target.files[0]; if(!f)return;
+    const r=new FileReader();
+    r.onload=()=>{
+      try{
+        const d=JSON.parse(r.result);
+        const valid=d&&typeof d==="object"&&!Array.isArray(d)&&d.progress&&typeof d.progress==="object"&&Array.isArray(d.sessions)&&d.prefs&&typeof d.prefs==="object"&&Array.isArray(d.custom);
+        if(!valid)throw new Error("Formato de respaldo no reconocido");
+        if(!confirm("La importación reemplazará el progreso, las preferencias y el vocabulario personal de este navegador. ¿Continuar?")){$("restore").value="";return;}
+        progress=d.progress; sessions=d.sessions; prefs={...prefs,...d.prefs}; custom=d.custom.map(w=>({...w,source:"custom"}));
+        localStorage.setItem("ml2_custom",JSON.stringify(custom));
+        words=[...bookWords,...hskWords,...custom]; save(); updateTop();
+        toast("Respaldo importado correctamente"); settings();
+      }catch(err){toast("No se pudo importar: el archivo no es un respaldo válido de Mandarin Lab.");console.warn(err)}
+      $("restore").value="";
+    };
+    r.onerror=()=>toast("No se pudo leer el archivo seleccionado.");
+    r.readAsText(f,"UTF-8");
+  };
+}
 function download(blob,name){let a=document.createElement("a"),u=URL.createObjectURL(blob);a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
  navigator.serviceWorker.register("./sw.js").catch(()=>{});
