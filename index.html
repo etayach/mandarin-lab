@@ -129,9 +129,10 @@ function speak(t){
 let activeRecognition = null;
 let recognitionStartPending = false;
 let recognitionLog = [];
+let visibilityStopTimer = null;
 function recognitionSnapshot(extra={}){
   return {
-    appVersion:"2.4.2",
+    appVersion:"2.4.3",
     timestamp:new Date().toISOString(),
     userAgent:navigator.userAgent,
     secureContext:window.isSecureContext,
@@ -296,13 +297,25 @@ async function listen(onText,onError,onStatus=()=>{}){
     recognitionStartPending=false;
   }
 }
-// Salvaguardas de ciclo de vida: detener reconocimiento al salir, ocultar o congelar la página.
+// Salvaguardas de ciclo de vida. Safari puede emitir cambios transitorios de visibilidad;
+// confirmamos que la página siga oculta antes de detener el reconocimiento.
 document.addEventListener("visibilitychange",()=>{
-  if(document.visibilityState!=="visible") stopRecognition("page-hidden");
+  const state=document.visibilityState;
+  logRecognition("visibility-change",{visibilityState:state,hidden:document.hidden,hasFocus:document.hasFocus()});
+  if(state==="visible"){
+    if(visibilityStopTimer){clearTimeout(visibilityStopTimer);visibilityStopTimer=null;}
+    return;
+  }
+  if(visibilityStopTimer)clearTimeout(visibilityStopTimer);
+  visibilityStopTimer=setTimeout(()=>{
+    visibilityStopTimer=null;
+    logRecognition("visibility-confirmed-hidden",{visibilityState:document.visibilityState,hidden:document.hidden,hasFocus:document.hasFocus()});
+    if(document.visibilityState!=="visible")stopRecognition("page-hidden-confirmed");
+  },1200);
 });
-window.addEventListener("pagehide",()=>stopRecognition("pagehide"));
-window.addEventListener("freeze",()=>stopRecognition("page-freeze"));
-window.addEventListener("beforeunload",()=>stopRecognition("beforeunload"));
+window.addEventListener("pagehide",()=>{if(visibilityStopTimer){clearTimeout(visibilityStopTimer);visibilityStopTimer=null;}stopRecognition("pagehide")});
+window.addEventListener("freeze",()=>{if(visibilityStopTimer){clearTimeout(visibilityStopTimer);visibilityStopTimer=null;}stopRecognition("page-freeze")});
+window.addEventListener("beforeunload",()=>{if(visibilityStopTimer){clearTimeout(visibilityStopTimer);visibilityStopTimer=null;}stopRecognition("beforeunload")});
 function go(pg){if(page==="oral"&&pg!=="oral")stopRecognition("navigate-away");page=pg;idx=0;revealed=false;document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===pg));$("toplabel").textContent=({home:"Inicio",study:"Flashcards",dictation:"Dictado",oral:"Pronunciación",writing:"Escritura",exam:"Exámenes",library:"Biblioteca",stats:"Estadísticas",settings:"Ajustes y datos"})[pg];render()}
 document.querySelectorAll("[data-page]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.page)));
 function render(){updateTop();({home,study,dictation,oral,writing,exam,library,stats,settings}[page]||home)()}
@@ -453,7 +466,7 @@ function settings(){
   $("rate").onchange=()=>{prefs.voiceRate=Number($("rate").value);save()};
   $("testAudio").onclick=()=>speak("你好！我们一起学习中文。");
   $("export").onclick=()=>{
-    const backup={app:"Mandarin Lab",appVersion:"2.4.2",backupSchema:1,exportedAt:new Date().toISOString(),progress,sessions,prefs,custom};
+    const backup={app:"Mandarin Lab",appVersion:"2.4.3",backupSchema:1,exportedAt:new Date().toISOString(),progress,sessions,prefs,custom};
     const blob=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
     download(blob,"mandarin-lab-backup-"+new Date().toISOString().slice(0,10)+".json");
     toast("Respaldo exportado");

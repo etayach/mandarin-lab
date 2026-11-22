@@ -1,4 +1,4 @@
-MANDARIN LAB 2.4.2
+MANDARIN LAB 2.4.3
 Publicación: GitHub Pages
 
 Archivos:
@@ -8,7 +8,7 @@ Archivos:
 - icon.svg
 - README.txt
 
-Cambios 2.4.2:
+Cambios 2.4.3:
 - Gestión de sesiones de reconocimiento con liberación idempotente.
 - No permite solicitudes simultáneas mientras una sesión está activa o cerrándose.
 - Espera el evento end antes de iniciar una sesión posterior.
