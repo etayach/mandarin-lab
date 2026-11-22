@@ -1,17 +1,22 @@
-# Mandarin Lab 2.4.1
+MANDARIN LAB 2.4.2
+Publicación: GitHub Pages
 
-Actualización correctiva de Mandarin Lab 2.4 centrada en el ciclo de vida de SpeechRecognition en Safari iOS.
+Archivos:
+- index.html
+- manifest.webmanifest
+- sw.js
+- icon.svg
+- README.txt
 
-## Cambios de 2.4.1
-- Cierre de reconocimiento mediante abort() y espera del evento end antes de liberar la sesión.
-- No se desconectan los manejadores de eventos antes de que Safari complete el cierre.
-- Bloqueo de pulsaciones repetidas mientras existe una sesión activa o una solicitud de inicio/cierre.
-- No se inicia una nueva sesión hasta que la anterior haya terminado o venza un tiempo de seguridad.
-- Cierre preventivo al salir de Pronunciación, ocultar la página, abandonar Safari o congelar la página.
-- Diagnóstico técnico sigue oculto por defecto y puede habilitarse desde Ajustes y datos.
+Cambios 2.4.2:
+- Gestión de sesiones de reconocimiento con liberación idempotente.
+- No permite solicitudes simultáneas mientras una sesión está activa o cerrándose.
+- Espera el evento end antes de iniciar una sesión posterior.
+- Watchdogs para recuperar la interfaz si Safari no emite end después de un error o cancelación.
+- El botón de reconocimiento refleja los estados de preparación, escucha y disponibilidad.
+- Navegación entre palabras espera el cierre de la sesión anterior.
+- Se mantiene el diagnóstico técnico oculto por defecto.
 
-## Publicación en GitHub Pages
-Sube los cinco archivos directamente a la raíz del repositorio existente y confirma los cambios. No subas la carpeta contenedora. El Service Worker utiliza la caché `mandarin-lab-v2.4.1`.
-
-## Datos y limitaciones
-Se conserva el esquema de respaldo y el almacenamiento local del progreso. La corrección gestiona de forma más segura las sesiones desde la aplicación, pero el comportamiento final de liberación del micrófono debe validarse en Safari del iPhone; una página web no puede garantizar el comportamiento interno de iOS.
+Publicación:
+Sube los cinco archivos directamente a la raíz del repositorio GitHub Pages y confirma los cambios.
+La versión de Service Worker cambia para solicitar los activos nuevos.
