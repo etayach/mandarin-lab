@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#29231f">
-<meta name="application-version" content="2.4.3">
+<meta name="application-version" content="2.4.4">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<title>Mandarin Lab 2.4.3</title>
+<title>Mandarin Lab 2.4.4</title>
 <style>
 :root{--ink:#29231f;--muted:#81766e;--paper:#f7f4ef;--card:#fff;--line:#e8e0d7;--red:#a94438;--red2:#c45b4c;--green:#25845b;--gold:#d6a64d;--soft:#f0e9e1;--shadow:0 8px 28px #32251a0b}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
@@ -35,7 +35,7 @@ button,input,select{font:inherit}button{cursor:pointer;border:0;border-radius:12
   <button data-page="stats"><span class="ico">▥</span> Estadísticas</button>
   <button data-page="settings"><span class="ico">⚙</span> Ajustes y datos</button>
  </nav>
- <div class="sidefoot">Mandarin Lab 2.4.3 · HSK 3.0<br>Aprendizaje personal, a tu ritmo.</div>
+ <div class="sidefoot">Mandarin Lab 2.4.4 · HSK 3.0<br>Aprendizaje personal, a tu ritmo.</div>
 </aside>
 <div class="main">
  <header class="top"><div class="row"><b id="toplabel">Inicio</b><span class="tag red">HSK 3.0</span></div><div class="topright"><span class="streak" id="streak">🔥 0 días</span><div class="avatar">文</div></div></header>
@@ -58,6 +58,29 @@ const bookWords=[
 ["学院","xuéyuàn","instituto; colegio; academia","Sustantivo","Lección 10","2-10-02"],
 ["报告","bàogào","discurso; conferencia; informe","Sustantivo","Lección 10","2-10-02"],
 ["语言","yǔyán","idioma","Sustantivo","Lección 10","2-10-02"],
+["文学","wénxué","literatura","Sustantivo","Lección 10","2-10-02"],
+["教授","jiàoshòu","catedrático/a","Sustantivo","Lección 10","2-10-02"],
+["过节","guòjié","celebrar una fiesta","Verbo-Objeto","Lección 10","2-10-02"],
+["过","guò","pasar (el tiempo)","Verbo","Lección 10","2-10-02"],
+["节","jié","fiesta; festival","Sustantivo","Lección 10","2-10-02"],
+["外婆","wàipó","abuela materna","Sustantivo","Lección 10","2-10-02"],
+["住","zhù","vivir","Verbo","Lección 10","2-10-02"],
+["旅行","lǚxíng","viajar","Verbo","Lección 10","2-10-02"],
+["看","kàn","ver; visitar (a alguien)","Verbo","Lección 10","2-10-02"],
+["决定","juédìng","decidir","Verbo","Lección 10","2-10-02"],
+["重要","zhòngyào","importante","Adjetivo","Lección 10","2-10-02"],
+["节日","jiérì","fiesta; festival","Sustantivo","Lección 10","2-10-02"],
+["年轻","niánqīng","joven","Adjetivo","Lección 10","2-10-02"],
+["西方","Xīfāng","Occidente","Sustantivo","Lección 10","2-10-02"],
+["爱人","àiren","esposo o esposa","Sustantivo","Lección 10","2-10-02"],
+["爱","ài","amar","Verbo","Lección 10","2-10-02"],
+["儿子","érzi","hijo","Sustantivo","Lección 10","2-10-02"],
+["王府井","Wángfǔjǐng","Wangfujing, zona comercial de Beijing","Nombre propio","Lección 10","2-10-02"],
+["圣诞节","Shèngdàn Jié","Navidad; fiesta de Navidad","Nombre propio","Lección 10","2-10-02"],
+["加拿大","Jiānádà","Canadá","Nombre propio","Lección 10","2-10-02"],
+["古波","Gǔ Bō","Gu Bo, nombre chino del padre de Ding Libo","Nombre propio","Lección 10","2-10-02"],
+["丁云","Dīng Yún","Ding Yun, nombre chino de la madre de Ding Libo","Nombre propio","Lección 10","2-10-02"],
+["春节","Chūnjié","Fiesta de Primavera; Año Nuevo Chino","Nombre propio","Lección 10","2-10-02"],
 ["博物馆","bówùguǎn","museo","Sustantivo","Lección 9","2-09-04"],
 ["展览","zhǎnlǎn","exhibir; exposición","Verbo","Lección 9","2-09-04"],
 ["时候","shíhou","tiempo; momento","Sustantivo","Lección 9","2-09-04"],
@@ -132,7 +155,7 @@ let recognitionLog = [];
 let visibilityStopTimer = null;
 function recognitionSnapshot(extra={}){
   return {
-    appVersion:"2.4.3",
+    appVersion:"2.4.4",
     timestamp:new Date().toISOString(),
     userAgent:navigator.userAgent,
     secureContext:window.isSecureContext,
@@ -445,13 +468,13 @@ function rows(list){return list.map(w=>`<tr><td class="hz">${esc(w.hanzi)}</td><
 function importCSV(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{let lines=String(r.result).split(/\r?\n/).filter(Boolean),head=lines.shift().split(",").map(x=>x.trim().toLowerCase()),get=(a,k)=>a[head.indexOf(k)]||"";let added=0;lines.forEach((line,i)=>{let a=line.split(",").map(x=>x.trim());let hanzi=get(a,"hanzi")||get(a,"chinese");if(!hanzi)return;let item={id:"custom-"+Date.now()+"-"+i,hanzi,pinyin:get(a,"pinyin"),meaning:get(a,"meaning")||get(a,"translation"),pos:get(a,"pos"),source:"custom",lesson:get(a,"lesson"),level:get(a,"level"),notes:"Importado por el usuario"};if(!words.some(w=>w.hanzi===item.hanzi&&w.source==="custom")){custom.push(item);words.push(item);added++}});localStorage.setItem("ml2_custom",JSON.stringify(custom));toast(added+" palabras importadas");library()};r.readAsText(f,"UTF-8")}
 function stats(){let total=reviewed(),c=Object.values(progress).reduce((s,x)=>s+x.correct,0),wrong=Object.values(progress).reduce((s,x)=>s+x.wrong,0);let difficult=words.filter(w=>p(w).wrong>p(w).correct).sort((a,b)=>p(b).wrong-p(b).wrong).slice(0,12);$("app").innerHTML=`<div class="sectionhead"><div><h2>Estadísticas 学习进度</h2><p>Seguimiento de tu aprendizaje en este dispositivo.</p></div><span class="tag green">${accuracy()}% precisión</span></div><div class="stats"><div class="stat"><b>${total}</b><span>Respuestas registradas</span></div><div class="stat"><b>${c}</b><span>Correctas</span></div><div class="stat"><b>${wrong}</b><span>Incorrectas</span></div><div class="stat"><b>${mastered()}</b><span>Consolidadas</span></div></div><div class="sectionhead"><div><h2>Retención por fuente</h2><p>Basada en respuestas registradas.</p></div></div><div class="panel">${["book","hsk","custom"].map(s=>{let a=words.filter(w=>w.source===s),n=a.reduce((z,w)=>z+p(w).correct+p(w).wrong,0),ok=a.reduce((z,w)=>z+p(w).correct,0);return `<div style="margin:14px 0"><div class="row between"><b>${s==="book"?"Libro":s==="hsk"?"HSK 3.0":"Personal"}</b><span class="muted">${n?Math.round(ok/n*100):0}% · ${n} respuestas</span></div><div class="bar"><i style="width:${n?ok/n*100:0}%"></i></div></div>`}).join("")}</div><div class="sectionhead"><div><h2>Palabras para reforzar</h2><p>Las que acumulan más errores que aciertos.</p></div></div><div class="panel tablewrap"><table><thead><tr><th>汉字</th><th>Pinyin</th><th>Significado</th><th>Errores</th></tr></thead><tbody>${difficult.map(w=>`<tr><td class="hz">${w.hanzi}</td><td>${w.pinyin}</td><td>${w.meaning}</td><td>${p(w).wrong}</td></tr>`).join("")||'<tr><td colspan="4">Todavía no hay suficientes datos.</td></tr>'}</tbody></table></div>`}
 function settings(){
-  $("app").innerHTML=`<div class="sectionhead"><div><h2>Ajustes y datos</h2><p>Controla tu sesión y conserva tu progreso.</p></div><span class="tag green">Versión 2.4.3</span></div>
+  $("app").innerHTML=`<div class="sectionhead"><div><h2>Ajustes y datos</h2><p>Controla tu sesión y conserva tu progreso.</p></div><span class="tag green">Versión 2.4.4</span></div>
   <div class="panel"><h3>Objetivo diario</h3><div class="row"><input id="goal" type="number" min="5" max="120" value="${prefs.dailyGoal}"><span class="muted">minutos al día</span><button class="primary" id="saveGoal">Guardar</button></div><h3 style="margin-top:24px">Velocidad del audio</h3><div class="row"><input id="rate" type="range" min=".55" max="1.1" step=".05" value="${prefs.voiceRate}"><span id="rateValue">${prefs.voiceRate}×</span></div><button class="quiet" id="testAudio">Probar audio 中文</button>
   <p class="footnote">Si no escuchas el audio en iPhone, comprueba que el interruptor lateral no esté en silencio, sube el volumen y revisa la salida de sonido. Safari no permite que esta web detecte directamente el estado del interruptor de silencio.</p></div>
   <div class="panel"><h3>Respaldo de progreso</h3><p class="muted">Exporta tus repasos, estadísticas, preferencias, sesiones y vocabulario personal. El respaldo incluye la fecha y versión de exportación. Los datos se guardan localmente y no se sincronizan automáticamente entre dispositivos.</p><div class="row"><button class="primary" id="export">Exportar respaldo JSON</button><label class="quiet" style="padding:11px 15px;border-radius:12px;cursor:pointer">Importar respaldo<input id="restore" type="file" accept=".json,application/json" class="hidden"></label></div><p class="footnote">Al importar, se reemplazarán los datos locales actuales. Exporta primero una copia si quieres conservarlos.</p></div>
   <div class="panel"><h3>Herramientas avanzadas</h3><p class="muted">El diagnóstico técnico permanece oculto durante el uso normal. Puedes mostrarlo temporalmente si necesitas investigar un problema con el micrófono.</p><button class="quiet" id="toggleDiagnostics">${prefs.showDiagnostics?"Ocultar diagnóstico técnico":"Mostrar diagnóstico técnico"}</button></div>
   <div class="panel"><h3>Historial de cambios</h3><div class="lessonlist">
-    <div class="lesson"><div><strong>v2.4.3 · Actual</strong><small>Reinicio fiable entre intentos, bloqueo de solicitudes simultáneas, recuperación ante eventos end ausentes y cierre del micrófono al navegar o dejar Safari en segundo plano.</small></div><span class="tag green">Actual</span></div>
+    <div class="lesson"><div><strong>v2.4.4 · Actual</strong><small>Reinicio fiable entre intentos, bloqueo de solicitudes simultáneas, recuperación ante eventos end ausentes y cierre del micrófono al navegar o dejar Safari en segundo plano.</small></div><span class="tag green">Actual</span></div>
     <div class="lesson"><div><strong>v2.4</strong><small>Primera protección del ciclo de vida y diagnóstico ocultable.</small></div></div>
     <div class="lesson"><div><strong>v2.4.2</strong><small>Diagnóstico detallado de SpeechRecognition en Safari, códigos de error específicos y herramienta para copiar registros.</small></div></div><div class="lesson"><div><strong>v2.2</strong><small>Versión visible, respaldo con metadatos y validación, ayuda contextual de audio para iPhone.</small></div></div>
     <div class="lesson"><div><strong>v2.1</strong><small>Filtros persistentes en Flashcards, relación coherente entre fuente y lección, contador filtrado y navegación dentro del conjunto seleccionado.</small></div></div>
@@ -466,7 +489,7 @@ function settings(){
   $("rate").onchange=()=>{prefs.voiceRate=Number($("rate").value);save()};
   $("testAudio").onclick=()=>speak("你好！我们一起学习中文。");
   $("export").onclick=()=>{
-    const backup={app:"Mandarin Lab",appVersion:"2.4.3",backupSchema:1,exportedAt:new Date().toISOString(),progress,sessions,prefs,custom};
+    const backup={app:"Mandarin Lab",appVersion:"2.4.4",backupSchema:1,exportedAt:new Date().toISOString(),progress,sessions,prefs,custom};
     const blob=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
     download(blob,"mandarin-lab-backup-"+new Date().toISOString().slice(0,10)+".json");
     toast("Respaldo exportado");

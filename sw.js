@@ -1,4 +1,4 @@
-const CACHE = "mandarin-lab-v2.4.3-fix1";
+const CACHE = "mandarin-lab-v2.4.4";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg"];
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));
